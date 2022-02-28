@@ -79,7 +79,7 @@
        end if
     else
        ! invalid input
-       call decomp_2d_abort(10, &
+       call decomp_2d_abort(__FILE__, __LINE__, 10, &
             'Invalid data passed to update_halo')
     end if
 

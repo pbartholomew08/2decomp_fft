@@ -96,7 +96,7 @@ contains
 
     if (initialised) then
        errorcode = 4
-       call decomp_2d_abort(errorcode, &
+       call decomp_2d_abort(__FILE__, __LINE__, errorcode, &
             'FFT library should only be initialised once')
     end if
     
@@ -131,7 +131,7 @@ contains
     end if
     if (status /= 0) then
        errorcode = 3
-       call decomp_2d_abort(errorcode, &
+       call decomp_2d_abort(__FILE__, __LINE__, errorcode, &
             'Out of memory when initialising FFT')
     end if
 

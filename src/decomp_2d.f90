@@ -144,7 +144,7 @@ module decomp_2d
        transpose_test, &
        decomp_info_init, decomp_info_finalize, partition, &
        alloc_x, alloc_y, alloc_z, &
-       update_halo, decomp_2d_abort, &
+       update_halo, decomp_2d_abort, decomp_2d_warning, &
        get_decomp_info
 
 
@@ -310,7 +310,7 @@ contains
     else
        if (nproc /= p_row*p_col) then
           errorcode = 1
-          call decomp_2d_abort(errorcode, &
+          call decomp_2d_abort(__FILE__, __LINE__, errorcode, &
                'Invalid 2D processor grid - nproc /= p_row*p_col')
        else
           row = p_row
@@ -487,7 +487,7 @@ contains
     ! verify the global size can actually be distributed as pencils
     if (nx<dims(1) .or. ny<dims(1) .or. ny<dims(2) .or. nz<dims(2)) then
        errorcode = 6
-       call decomp_2d_abort(errorcode, &
+       call decomp_2d_abort(__FILE__, __LINE__, errorcode, &
             'Invalid 2D processor grid. ' // &
             'Make sure that min(nx,ny) >= p_row and ' // &
             'min(ny,nz) >= p_col')
@@ -551,7 +551,7 @@ contains
        allocate(work2_c(buf_size), STAT=status)
        if (status /= 0) then
           errorcode = 2
-          call decomp_2d_abort(errorcode, &
+          call decomp_2d_abort(__FILE__, __LINE__, errorcode, &
                'Out of memory when allocating 2DECOMP workspace')
        end if
     end if
@@ -1192,7 +1192,7 @@ contains
        end if
     else
        errorcode = 9
-       call decomp_2d_abort(errorcode, &
+       call decomp_2d_abort(__FILE__, __LINE__, errorcode, &
             'The processor-grid auto-tuning code failed. ' // &
             'The number of processes requested is probably too large.')
     end if
@@ -1211,10 +1211,12 @@ contains
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Error handling
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  subroutine decomp_2d_abort(errorcode, msg)
+  subroutine decomp_2d_abort(FILE, LINE, errorcode, msg)
 
     implicit none
 
+    character(len=*), intent(IN) :: FILE
+    integer, intent(IN) :: LINE
     integer, intent(IN) :: errorcode
     character(len=*), intent(IN) :: msg
 
@@ -1228,6 +1230,24 @@ contains
 
     return
   end subroutine decomp_2d_abort
+  subroutine decomp_2d_warning(FILE, LINE, errorcode, msg)
+
+    implicit none
+
+    character(len=*), intent(IN) :: FILE
+    integer, intent(IN) :: LINE
+    integer, intent(IN) :: errorcode
+    character(len=*), intent(IN) :: msg
+
+    integer :: ierror
+    
+    if (nrank==0) then
+       write(*,*) '2DECOMP&FFT ERROR - errorcode: ', errorcode
+       write(*,*) 'ERROR MESSAGE: ' // msg
+    end if
+
+    return
+  end subroutine decomp_2d_warning
 
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
